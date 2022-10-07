@@ -44,7 +44,8 @@ const cols = [
     undefined,
     [0xe3, 0xdb, 0x65], // sand
     [0x00, 0x00, 0xee], // water
-    [0xaa, 0xaa, 0xaa] // smoke
+    [0xaa, 0xaa, 0xaa],  // smoke
+    [0xff, 0x05, 0x03]  // fire
 ]
 
 {
@@ -76,7 +77,7 @@ class Particle {
     age() {
         if (this.ttl > 0) {
             this.ttl--
-            if (this.ttl === 0){
+            if (this.ttl === 0) {
                 putPixel(this.x, this.y, 0, 0, 0, 255)
                 fieldSet(this.x, this.y, undefined)
                 this.type = 0
@@ -102,7 +103,7 @@ rafLoop((delta, time) => {
 
     if (pointer.clicked) {
         console.log('click')
-        const ttl = (pointer.type === 3)?60:undefined
+        const ttl = (pointer.type === 3) ? rndInt(30,90) : (pointer.type === 4) ? rndInt(100,260) : undefined
         const p = new Particle(
             pointer.type,
             Math.floor(pointer.x),
@@ -167,6 +168,41 @@ rafLoop((delta, time) => {
                     }
                 }
             }
+        } if (p.type === 4) {
+            const succ = [
+                [p.x, p.y + 1],
+                [p.x - 1, p.y + 1],
+                [p.x + 1, p.y + 1]
+            ]
+            for (let s = 0; s < succ.length; s++) {
+                const [x, y] = succ[s]
+                if (inBounds(x, y)) {
+                    if (fieldGet(x, y) === undefined) {
+                        p.moveTo(x, y)
+                        break;
+                    }
+                }
+            }
+            {
+                const x = p.x
+                const y = p.y - 1
+                if (Math.random() > 0.9)
+                    if (inBounds(x, y)) {
+                        if (fieldGet(x, y) === undefined) {
+                            const p_smoke = new Particle(
+                                3,
+                                x, y,
+                                0,
+                                0,
+                                rndInt(30,60)
+                            )
+                            fieldSet(p_smoke.x, p_smoke.y, p_smoke)
+                            particles.push(p_smoke)
+
+                        }
+                    }
+            }
+
         }
     }
 
