@@ -7,7 +7,7 @@ import seedrandom from 'seedrandom'
 const rng = seedrandom('hello.');
 const rndInt = (min, max) => min + Math.floor((max - min) * rng())
 
-const canvas = fsCanvas(100, 100)
+const canvas = fsCanvas(200, 200)
 const ctx = canvas.getContext('2d')
 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
 const putPixel = (x, y, r, g, b, a) => {
