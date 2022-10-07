@@ -22,7 +22,9 @@ const clear = () => {
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 }
 clear()
-const pointer = { x: 0, y: 0, clicked: false }
+
+const inBounds = (x, y) => (x > 0) && (x < canvas.width) && (y > 0) && (y < canvas.height)
+const pointer = { x: 0, y: 0, clicked: false, type : 1 }
 document.body.addEventListener('mousemove', e => canvasMousePosition(canvas, e, pointer))
 document.body.addEventListener('mousedown', e => pointer.clicked = true)
 document.body.addEventListener('mouseup', e => pointer.clicked = false)
@@ -40,8 +42,23 @@ const particles = []
 
 const cols = [
     undefined,
-    [0xe3, 0xdb, 0x65] // sand
+    [0xe3, 0xdb, 0x65], // sand
+    [0x00, 0x00, 0xee] // water
 ]
+
+{
+    cols.forEach((col, i) => {
+        if (col) {
+            const button = document.createElement('button')
+            const [r, g, b] = col
+            button.style['background-color'] = `rgb(${r},${g},${b})`
+            button.style.width = '30px'
+            button.style.height = '30px'
+            button.onclick = () => pointer.type = i
+            document.body.append(button)
+        }
+    })
+}
 
 
 class Particle {
@@ -60,7 +77,7 @@ class Particle {
 
 for (let i = 0; i < 1000; i++) {
     const p = new Particle(
-        1,
+        rndInt(1, 2),
         rndInt(0, canvas.width),
         rndInt(0, canvas.height),
     )
@@ -70,13 +87,12 @@ for (let i = 0; i < 1000; i++) {
     }
 }
 
-
 rafLoop((delta, time) => {
 
     if (pointer.clicked) {
         console.log('click')
         const p = new Particle(
-            1,
+            pointer.type,
             Math.floor(pointer.x),
             Math.floor(pointer.y),
         )
@@ -85,31 +101,39 @@ rafLoop((delta, time) => {
             particles.push(p)
         }
     }
+
     for (let i = 0; i < particles.length; i++) {
         const p = particles[i]
         if (p.type === 1) {
-            const isDown = (p.y === (canvas.height - 1))
-            if (!isDown) {
-                const cell_b = fieldGet(p.x, p.y + 1)
-                if (cell_b === undefined) {
-                    p.moveTo(p.x, p.y + 1)
-                    continue
+            const succ = [
+                [p.x, p.y + 1],
+                [p.x - 1, p.y + 1],
+                [p.x + 1, p.y + 1]
+            ]
+            for (let s = 0; s < succ.length; s++) {
+                const [x, y] = succ[s]
+                if (inBounds(x, y)) {
+                    if (fieldGet(x, y) === undefined) {
+                        p.moveTo(x, y)
+                        break;
+                    }
                 }
             }
-            const isLeft = (p.y === (canvas.height - 1))
-            if (!isLeft) {
-                const cell_bl = fieldGet(p.x - 1, p.y + 1)
-                if (cell_bl === undefined) {
-                    p.moveTo(p.x - 1, p.y + 1)
-                    continue
-                }
-            }
-            const isRight = (p.y === (canvas.height - 1))
-            if (!isRight) {
-                const cell_br = fieldGet(p.x + 1, p.y + 1)
-                if (cell_br === undefined) {
-                    p.moveTo(p.x + 1, p.y + 1)
-                    continue
+        } else if (p.type === 2) {
+            const succ = [
+                [p.x, p.y + 1],
+                [p.x - 1, p.y + 1],
+                [p.x + 1, p.y + 1],
+                [p.x - 1, p.y],
+                [p.x + 1, p.y],
+            ]
+            for (let s = 0; s < succ.length; s++) {
+                const [x, y] = succ[s]
+                if (inBounds(x, y)) {
+                    if (fieldGet(x, y) === undefined) {
+                        p.moveTo(x, y)
+                        break;
+                    }
                 }
             }
         }
