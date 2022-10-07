@@ -24,7 +24,7 @@ const clear = () => {
 clear()
 
 const inBounds = (x, y) => (x > 0) && (x < canvas.width) && (y > 0) && (y < canvas.height)
-const pointer = { x: 0, y: 0, clicked: false, type : 1 }
+const pointer = { x: 0, y: 0, clicked: false, type: 1 }
 document.body.addEventListener('mousemove', e => canvasMousePosition(canvas, e, pointer))
 document.body.addEventListener('mousedown', e => pointer.clicked = true)
 document.body.addEventListener('mouseup', e => pointer.clicked = false)
@@ -43,7 +43,8 @@ const particles = []
 const cols = [
     undefined,
     [0xe3, 0xdb, 0x65], // sand
-    [0x00, 0x00, 0xee] // water
+    [0x00, 0x00, 0xee], // water
+    [0xaa, 0xaa, 0xaa] // smoke
 ]
 
 {
@@ -62,8 +63,8 @@ const cols = [
 
 
 class Particle {
-    constructor(type, x, y, dx, dy) {
-        Object.assign(this, { type, x, y, dx, dy })
+    constructor(type, x, y, dx, dy, ttl = -1) {
+        Object.assign(this, { type, x, y, dx, dy, ttl })
     }
     moveTo(x, y) {
         putPixel(this.x, this.y, 0, 0, 0, 255)
@@ -72,12 +73,22 @@ class Particle {
         this.y = y
         putPixel(this.x, this.y, ...cols[this.type], 255)
     }
+    age() {
+        if (this.ttl > 0) {
+            this.ttl--
+            if (this.ttl === 0){
+                putPixel(this.x, this.y, 0, 0, 0, 255)
+                fieldSet(this.x, this.y, undefined)
+                this.type = 0
+            }
+        }
+    }
 }
 
 
 for (let i = 0; i < 1000; i++) {
     const p = new Particle(
-        rndInt(1, 2),
+        rndInt(1, 3),
         rndInt(0, canvas.width),
         rndInt(0, canvas.height),
     )
@@ -91,10 +102,14 @@ rafLoop((delta, time) => {
 
     if (pointer.clicked) {
         console.log('click')
+        const ttl = (pointer.type === 3)?60:undefined
         const p = new Particle(
             pointer.type,
             Math.floor(pointer.x),
             Math.floor(pointer.y),
+            0,
+            0,
+            ttl
         )
         if (fieldGet(p.x, p.y) === undefined) {
             fieldSet(p.x, p.y, p)
@@ -104,6 +119,7 @@ rafLoop((delta, time) => {
 
     for (let i = 0; i < particles.length; i++) {
         const p = particles[i]
+        p.age()
         if (p.type === 1) {
             const succ = [
                 [p.x, p.y + 1],
@@ -126,6 +142,21 @@ rafLoop((delta, time) => {
                 [p.x + 1, p.y + 1],
                 [p.x - 1, p.y],
                 [p.x + 1, p.y],
+            ]
+            for (let s = 0; s < succ.length; s++) {
+                const [x, y] = succ[s]
+                if (inBounds(x, y)) {
+                    if (fieldGet(x, y) === undefined) {
+                        p.moveTo(x, y)
+                        break;
+                    }
+                }
+            }
+        } if (p.type === 3) {
+            const succ = [
+                [p.x, p.y - 1],
+                [p.x - 1, p.y - 1],
+                [p.x + 1, p.y - 1]
             ]
             for (let s = 0; s < succ.length; s++) {
                 const [x, y] = succ[s]
