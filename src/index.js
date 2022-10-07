@@ -22,8 +22,11 @@ const clear = () => {
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 }
 clear()
-const pointer = { x: 0, y: 0 }
+const pointer = { x: 0, y: 0, clicked: false }
 document.body.addEventListener('mousemove', e => canvasMousePosition(canvas, e, pointer))
+document.body.addEventListener('mousedown', e => pointer.clicked = true)
+document.body.addEventListener('mouseup', e => pointer.clicked = false)
+
 const field = new Array(canvas.width * canvas.height)
 const fieldGet = (x, y) => field[x + canvas.width * y]
 const fieldSet = (x, y, v) => field[x + canvas.width * y] = v
@@ -50,7 +53,7 @@ class Particle {
         fieldMoveTo(x, y, this)
         this.x = x
         this.y = y
-        putPixel(this.x, this.y, ...cols[this.type],255)
+        putPixel(this.x, this.y, ...cols[this.type], 255)
     }
 }
 
@@ -70,6 +73,18 @@ for (let i = 0; i < 1000; i++) {
 
 rafLoop((delta, time) => {
 
+    if (pointer.clicked) {
+        console.log('click')
+        const p = new Particle(
+            1,
+            Math.floor(pointer.x),
+            Math.floor(pointer.y),
+        )
+        if (fieldGet(p.x, p.y) === undefined) {
+            fieldSet(p.x, p.y, p)
+            particles.push(p)
+        }
+    }
     for (let i = 0; i < particles.length; i++) {
         const p = particles[i]
         if (p.type === 1) {
