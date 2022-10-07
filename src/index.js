@@ -35,6 +35,12 @@ const fieldMoveTo = (x, y, p) => {
 
 const particles = []
 
+const cols = [
+    undefined,
+    [0xe3, 0xdb, 0x65] // sand
+]
+
+
 class Particle {
     constructor(type, x, y, dx, dy) {
         Object.assign(this, { type, x, y, dx, dy })
@@ -44,6 +50,7 @@ class Particle {
         fieldMoveTo(x, y, this)
         this.x = x
         this.y = y
+        putPixel(this.x, this.y, ...cols[this.type],255)
     }
 }
 
@@ -93,18 +100,6 @@ rafLoop((delta, time) => {
         }
     }
 
-    // draw bitmap
-    for (let i = 0; i < particles.length; i++) {
-        const p = particles[i]
-        let col
-        if (p.type === 1){
-            col = [0xe3, 0xdb, 0x65]
-        }
-        putPixel(p.x, p.y, ...col,255)
-    }
-
-    // blit
-    //  clear()
     ctx.putImageData(imageData, 0, 0)
 
 })
