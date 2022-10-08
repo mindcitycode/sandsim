@@ -44,8 +44,10 @@ const cols = [
     undefined,
     [0xe3, 0xdb, 0x65], // sand
     [0x00, 0x00, 0xee], // water
-    [0xaa, 0xaa, 0xaa],  // smoke
-    [0xff, 0x05, 0x03]  // fire
+    [0xaa, 0xaa, 0xaa], // smoke
+    [0xff, 0x05, 0x03], // fire
+    [0x85, 0x5E, 0x42],  // wood
+    [0x00, 0xff, 0xa0]  // wood
 ]
 
 {
@@ -60,6 +62,16 @@ const cols = [
             document.body.append(button)
         }
     })
+    {
+        const info = document.createElement('span')
+        info.id = 'particle-count'
+        info.setCount = count => info.textContent = `${count} particles`
+        info.setCount(0)
+        info.style.height = '30px'
+        info.style['font-family'] = 'monospace'
+        info.style.color = 'white'
+        document.body.append(info)
+    }
 }
 
 
@@ -96,6 +108,7 @@ for (let i = 0; i < 1000; i++) {
     if (fieldGet(p.x, p.y) === undefined) {
         fieldSet(p.x, p.y, p)
         particles.push(p)
+        p.moveTo(p.x, p.y)
     }
 }
 
@@ -103,21 +116,25 @@ rafLoop((delta, time) => {
 
     if (pointer.clicked) {
         console.log('click')
-        const ttl = (pointer.type === 3) ? rndInt(30,90) : (pointer.type === 4) ? rndInt(100,260) : undefined
-        const p = new Particle(
-            pointer.type,
-            Math.floor(pointer.x),
-            Math.floor(pointer.y),
-            0,
-            0,
-            ttl
-        )
-        if (fieldGet(p.x, p.y) === undefined) {
-            fieldSet(p.x, p.y, p)
-            particles.push(p)
+        const ttl = (pointer.type === 3) ? rndInt(30, 90) : (pointer.type === 4) ? rndInt(100, 260) : undefined
+        const x = Math.floor(pointer.x)
+        const y = Math.floor(pointer.y)
+        if (inBounds(x, y)) {
+            const p = new Particle(
+                pointer.type,
+                Math.floor(pointer.x),
+                Math.floor(pointer.y),
+                0,
+                0,
+                ttl
+            )
+            if (fieldGet(p.x, p.y) === undefined) {
+                fieldSet(p.x, p.y, p)
+                particles.push(p)
+                p.moveTo(p.x, p.y)
+            }
         }
     }
-
     for (let i = 0; i < particles.length; i++) {
         const p = particles[i]
         p.age()
@@ -194,7 +211,7 @@ rafLoop((delta, time) => {
                                 x, y,
                                 0,
                                 0,
-                                rndInt(30,60)
+                                rndInt(30, 60)
                             )
                             fieldSet(p_smoke.x, p_smoke.y, p_smoke)
                             particles.push(p_smoke)
@@ -202,10 +219,42 @@ rafLoop((delta, time) => {
                         }
                     }
             }
+        } else if (p.type === 6) {
+            {
+                if (inBounds(p.x, p.y + 1)) {
+                    const under = fieldGet(p.x, p.y + 1)
+                    if (under) {
+                        under.ttl = 10
+                    }
+                }
+            }
+            const succ = [
+                [p.x, p.y + 1],
+                [p.x - 1, p.y + 1],
+                [p.x + 1, p.y + 1],
+                [p.x - 1, p.y],
+                [p.x + 1, p.y],
+            ]
+            for (let s = 0; s < succ.length; s++) {
+                const [x, y] = succ[s]
+                if (inBounds(x, y)) {
+                    if (fieldGet(x, y) === undefined) {
+                        p.moveTo(x, y)
+                        break;
+                    }
+                }
+            }
 
+        }
+        if (p.ttl === 0) {
+            const currentLast = particles[particles.length - 1]
+            particles[i] = currentLast
+            particles.length--
+            i--
         }
     }
 
+    document.getElementById('particle-count').setCount(particles.length)
     ctx.putImageData(imageData, 0, 0)
 
 })
