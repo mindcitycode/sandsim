@@ -96,6 +96,14 @@ class Particle {
             }
         }
     }
+    reduceTtl(to) {
+        const min = Math.max(1, to)
+        if (this.ttl === -1) {
+            this.ttl = min
+        } else {
+            this.ttl = Math.min(this.ttl, min)
+        }
+    }
 }
 
 
@@ -223,8 +231,9 @@ rafLoop((delta, time) => {
             {
                 if (inBounds(p.x, p.y + 1)) {
                     const under = fieldGet(p.x, p.y + 1)
-                    if (under) {
-                        under.ttl = 10
+                    if (under && under.type !== 6) {
+                        under.reduceTtl(rndInt(10, 30))
+                        p.reduceTtl(rndInt(20, 50))
                     }
                 }
             }
