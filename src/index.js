@@ -123,15 +123,16 @@ for (let i = 0; i < 1000; i++) {
 rafLoop((delta, time) => {
 
     if (pointer.clicked) {
-        console.log('click')
         const ttl = (pointer.type === 3) ? rndInt(30, 90) : (pointer.type === 4) ? rndInt(100, 260) : undefined
-        const x = Math.floor(pointer.x)
-        const y = Math.floor(pointer.y)
+        const a = rng() * Math.PI * 2
+        const r = rng() * 5
+        const x = Math.floor(pointer.x + r * Math.cos(a))
+        const y = Math.floor(pointer.y + r * Math.sin(a))
         if (inBounds(x, y)) {
             const p = new Particle(
                 pointer.type,
-                Math.floor(pointer.x),
-                Math.floor(pointer.y),
+                Math.floor(x),
+                Math.floor(y),
                 0,
                 0,
                 ttl
