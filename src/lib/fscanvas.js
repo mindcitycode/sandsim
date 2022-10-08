@@ -8,7 +8,7 @@ body {
     border:0;
     padding : 0;
 }
-canvas {
+canvas.fullscreen {
     background-color : black;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
@@ -23,6 +23,7 @@ canvas {
     const $c = document.createElement('canvas')
     $c.width = width
     $c.height = height
+    $c.classList.add('fullscreen')
     document.body.appendChild($c)
     return $c
 }
