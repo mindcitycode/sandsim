@@ -87,13 +87,16 @@ class Particle {
         this.y = y
         putPixel(this.x, this.y, ...cols[this.type], 255)
     }
+    kill() {
+        putPixel(this.x, this.y, 0, 0, 0, 255)
+        fieldSet(this.x, this.y, undefined)
+        this.type = 0
+    }
     age() {
         if (this.ttl > 0) {
             this.ttl--
             if (this.ttl === 0) {
-                putPixel(this.x, this.y, 0, 0, 0, 255)
-                fieldSet(this.x, this.y, undefined)
-                this.type = 0
+                this.kill()
             }
         }
     }
@@ -108,7 +111,7 @@ class Particle {
 }
 
 
-for (let i = 0; i < 1000; i++) {
+for (let i = 0; i < 0; i++) {
     const p = new Particle(
         rndInt(1, 3),
         rndInt(0, canvas.width),
@@ -155,7 +158,8 @@ rafLoop((delta, time) => {
                 [p.x - 1, p.y + 1],
                 [p.x + 1, p.y + 1]
             ]
-            for (let s = 0; s < succ.length; s++) {
+            let s = 0
+            for (; s < succ.length; s++) {
                 const [x, y] = succ[s]
                 if (inBounds(x, y)) {
                     if (fieldGet(x, y) === undefined) {
@@ -163,6 +167,9 @@ rafLoop((delta, time) => {
                         break;
                     }
                 }
+            }
+            if (s === succ.length) {
+                p.kill()
             }
         } else if (p.type === 2) {
             const succ = [
