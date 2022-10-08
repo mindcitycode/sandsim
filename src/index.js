@@ -42,12 +42,13 @@ const particles = []
 
 const cols = [
     undefined,
-    [0xe3, 0xdb, 0x65], // sand
-    [0x00, 0x00, 0xee], // water
-    [0xaa, 0xaa, 0xaa], // smoke
-    [0xff, 0x05, 0x03], // fire
+    [0xe3, 0xdb, 0x65],  // sand
+    [0x00, 0x00, 0xee],  // water
+    [0xaa, 0xaa, 0xaa],  // smoke
+    [0xff, 0x05, 0x03],  // fire
     [0x85, 0x5E, 0x42],  // wood
-    [0x00, 0xff, 0xa0]  // wood
+    [0x00, 0xff, 0xa0],  // acid
+    [0xff, 0xff, 0xff]   // salt
 ]
 
 {
@@ -123,24 +124,25 @@ for (let i = 0; i < 1000; i++) {
 rafLoop((delta, time) => {
 
     if (pointer.clicked) {
-        const ttl = (pointer.type === 3) ? rndInt(30, 90) : (pointer.type === 4) ? rndInt(100, 260) : undefined
-        const a = rng() * Math.PI * 2
-        const r = rng() * 5
-        const x = Math.floor(pointer.x + r * Math.cos(a))
-        const y = Math.floor(pointer.y + r * Math.sin(a))
-        if (inBounds(x, y)) {
-            const p = new Particle(
-                pointer.type,
-                Math.floor(x),
-                Math.floor(y),
-                0,
-                0,
-                ttl
-            )
-            if (fieldGet(p.x, p.y) === undefined) {
-                fieldSet(p.x, p.y, p)
-                particles.push(p)
-                p.moveTo(p.x, p.y)
+        for (let count = 0; count < 10; count++) {
+            const ttl = (pointer.type === 3) ? rndInt(30, 90) : (pointer.type === 4) ? rndInt(100, 260) : undefined
+            const a = rng() * Math.PI * 2
+            const r = rng() * 5
+            const x = Math.floor(pointer.x + r * Math.cos(a))
+            const y = Math.floor(pointer.y + r * Math.sin(a))
+            if (inBounds(x, y)) {
+                const p = new Particle(
+                    pointer.type,
+                    Math.floor(x),
+                    Math.floor(y),
+                    0,
+                    0,
+                    ttl
+                )
+                if (fieldGet(p.x, p.y) === undefined) {
+                    particles.push(p)
+                    p.moveTo(p.x, p.y)
+                }
             }
         }
     }
@@ -251,6 +253,26 @@ rafLoop((delta, time) => {
                     if (fieldGet(x, y) === undefined) {
                         p.moveTo(x, y)
                         break;
+                    }
+                }
+            }
+
+        } else if (p.type === 7) {
+            const succ = [
+                [p.x, p.y + 1],
+                [p.x - 1, p.y + 1],
+                [p.x + 1, p.y + 1]
+            ]
+            for (let s = 0; s < succ.length; s++) {
+                const [x, y] = succ[s]
+                if (inBounds(x, y)) {
+                    const found = fieldGet(x, y)
+                    if (found === undefined) {
+                        p.moveTo(x, y)
+                        break;
+                    } else if (found.type === 2) {
+                        // disolve in water
+                        p.reduceTtl(rndInt(20, 50))
                     }
                 }
             }
