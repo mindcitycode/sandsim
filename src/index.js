@@ -28,7 +28,7 @@ const inBounds = (x, y) => (x > 0) && (x < canvas.width) && (y > 0) && (y < canv
 clear()
 
 // pointer
-const pointer = { x: 0, y: 0, clicked: false, type: 1 }
+const pointer = { x: 0, y: 0, clicked: false, type: 1, shape: '⬤' }
 document.body.addEventListener('mousemove', e => canvasMousePosition(canvas, e, pointer))
 document.body.addEventListener('mousedown', e => pointer.clicked = true)
 document.body.addEventListener('mouseup', e => pointer.clicked = false)
@@ -57,7 +57,43 @@ const cols = [
 ]
 
 // ui
+const pointerShapes = {
+    '⬤': (px, py) => {
+        const points = []
+        for (let count = 0; count < 10; count++) {
+            const a = rng() * Math.PI * 2
+            const r = rng() * 5
+            const x = Math.floor(px + r * Math.cos(a))
+            const y = Math.floor(py + r * Math.sin(a))
+            points.push({ x, y })
+        }
+        return points
+    },
+    '⏹': (px, py) => {
+        const points = []
+        for (let i = 0; i < 10; i++) {
+            for (let j = 0; j < 10; j++) {
+                const x = px + i - 5
+                const y = py + j - 5
+                points.push({ x, y })
+            }
+        }
+        return points
+    }
+}
+
 {
+
+    Object.keys(pointerShapes).forEach((k, i) => {
+        const button = document.createElement('button')
+        button.textContent = k
+        button.style['background-color'] = 'white'
+        button.style.width = '30px'
+        button.style.height = '30px'
+        button.onclick = () => pointer.shape = k
+        document.body.append(button)
+    })
+
     cols.forEach((col, i) => {
         if (col) {
             const button = document.createElement('button')
@@ -151,12 +187,14 @@ for (let i = 0; i < 0; i++) {
 rafLoop((delta, time) => {
 
     if (pointer.clicked) {
-        for (let count = 0; count < 10; count++) {
+
+        const points = pointerShapes[pointer.shape](pointer.x, pointer.y)
+        for (let count = 0; count < points.length; count++) {
             const ttl = (pointer.type === 3) ? rndInt(30, 90) : (pointer.type === 4) ? rndInt(100, 260) : undefined
             const a = rng() * Math.PI * 2
             const r = rng() * 5
-            const x = Math.floor(pointer.x + r * Math.cos(a))
-            const y = Math.floor(pointer.y + r * Math.sin(a))
+            const x = points[count].x//Math.floor(pointer.x + r * Math.cos(a))
+            const y = points[count].y//Math.floor(pointer.y + r * Math.sin(a))
             const dx = (pointer.type === 9) ? (-1 + rng() * 2) : 0
             const dy = (pointer.type === 9) ? (-1 + rng() * 2) : 0
             if (inBounds(x, y)) {
