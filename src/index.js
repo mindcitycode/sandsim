@@ -407,7 +407,7 @@ rafLoop((delta, time) => {
                 const found = fieldGet(x, y)
                 if (found === undefined) {
                     p.moveTo(x, y)
-                } else if (found.type === 2) {
+                } else if (found.type !== 9) {
                     p.type = 2
                 }
             } else {
