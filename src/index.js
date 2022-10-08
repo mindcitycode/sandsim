@@ -5,6 +5,7 @@ import { canvasMousePosition } from './lib/mouse.js'
 import seedrandom from 'seedrandom'
 import { clamp } from './lib/clamp.js'
 const rng = seedrandom('hello.');
+window.rng = rng
 const rndInt = (min, max) => min + Math.floor((max - min) * rng())
 
 const canvas = fsCanvas(200, 200)
@@ -153,8 +154,8 @@ rafLoop((delta, time) => {
             const r = rng() * 5
             const x = Math.floor(pointer.x + r * Math.cos(a))
             const y = Math.floor(pointer.y + r * Math.sin(a))
-            const dx = (pointer.type === 9) ? (-1 + rng() * 3) : 0
-            const dy = (pointer.type === 9) ? (-1 + rng() * 3) : 0
+            const dx = (pointer.type === 9) ? (-1 + rng() * 2) : 0
+            const dy = (pointer.type === 9) ? (-1 + rng() * 2) : 0
             if (inBounds(x, y)) {
                 const p = new Particle(
                     pointer.type,
@@ -195,7 +196,7 @@ rafLoop((delta, time) => {
                 if (inBounds(p.x, p.y + 1)) {
                     const found = fieldGet(p.x, p.y + 1)
                     if (found && found.type === 2) {
-                        if (Math.random() > 0.8)
+                        if (rng() > 0.8)
                             p.swapWith(found)
                     }
                 }
@@ -256,7 +257,7 @@ rafLoop((delta, time) => {
                 // push smoke
                 const x = p.x
                 const y = p.y - 1
-                if (Math.random() > 0.95)
+                if (rng() > 0.95)
                     if (inBounds(x, y)) {
                         if (fieldGet(x, y) === undefined) {
                             const p_smoke = new Particle(
@@ -336,8 +337,8 @@ rafLoop((delta, time) => {
             }
         } else if (p.type === 9) {
             p.dy += 0.1
-            const x = Math.floor(p.x + p.dx)
-            const y = Math.floor(p.y + p.dy)
+            const x = Math.round(p.x + p.dx)
+            const y = Math.round(p.y + p.dy)
             if (inBounds(x, y)) {
                 const found = fieldGet(x, y)
                 if (found === undefined) {
@@ -345,6 +346,8 @@ rafLoop((delta, time) => {
                 } else if (found.type === 2) {
                     p.type = 2
                 }
+            } else {
+                p.type = 2                
             }
         }
 
