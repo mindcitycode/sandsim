@@ -4,12 +4,13 @@ import { rafLoop } from './lib/loop.js'
 import { canvasMousePosition } from './lib/mouse.js'
 import seedrandom from 'seedrandom'
 import { clamp } from './lib/clamp.js'
+
+// rng
 const rng = seedrandom('hello.');
-window.rng = rng
 const rndInt = (min, max) => min + Math.floor((max - min) * rng())
 
+// image
 const canvas = fsCanvas(200, 200)
-
 const ctx = canvas.getContext('2d')
 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
 const putPixel = (x, y, r, g, b, a) => {
@@ -23,13 +24,16 @@ const clear = () => {
     ctx.fillStyle = 'white'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 }
-clear()
 const inBounds = (x, y) => (x > 0) && (x < canvas.width) && (y > 0) && (y < canvas.height)
+clear()
+
+// pointer
 const pointer = { x: 0, y: 0, clicked: false, type: 1 }
 document.body.addEventListener('mousemove', e => canvasMousePosition(canvas, e, pointer))
 document.body.addEventListener('mousedown', e => pointer.clicked = true)
 document.body.addEventListener('mouseup', e => pointer.clicked = false)
 
+// bitmap acceleration structure
 const field = new Array(canvas.width * canvas.height)
 const fieldGet = (x, y) => field[x + canvas.width * y]
 const fieldSet = (x, y, v) => field[x + canvas.width * y] = v
@@ -38,9 +42,7 @@ const fieldMoveTo = (x, y, p) => {
     fieldSet(x, y, p)
 }
 
-
 const particles = []
-
 const cols = [
     undefined,
     [0xe3, 0xdb, 0x65],  // sand
@@ -54,6 +56,7 @@ const cols = [
     [0x0f, 0xf0, 0xff]   // speed
 ]
 
+// ui
 {
     cols.forEach((col, i) => {
         if (col) {
@@ -347,7 +350,7 @@ rafLoop((delta, time) => {
                     p.type = 2
                 }
             } else {
-                p.type = 2                
+                p.type = 2
             }
         }
 
