@@ -10,13 +10,13 @@ const config = {
     //  output: {
     //     filename: "./dist/app.bundle.js" //relative to root of the application
     plugins: [
-    /*    new CopyPlugin({
+        new CopyPlugin({
             patterns: [
                 { from: "assets", to: "assets" },
-                { from: "favicon.ico", to: "favicon.ico" },
+    //            { from: "favicon.ico", to: "favicon.ico" },
             ],
         }),
-      */  new HtmlWebpackPlugin({
+        new HtmlWebpackPlugin({
             hash: true,
             filename: './index.html', //relative to root of the application,
             title: 'Sand Sim'
