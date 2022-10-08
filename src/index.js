@@ -250,9 +250,19 @@ rafLoop((delta, time) => {
             for (let s = 0; s < succ.length; s++) {
                 const [x, y] = succ[s]
                 if (inBounds(x, y)) {
-                    if (fieldGet(x, y) === undefined) {
+                    const found = fieldGet(x, y)
+                    if (found === undefined) {
                         p.moveTo(x, y)
                         break;
+                    } else {
+                        // fire propagation
+                        if (found.type === 5) {
+                            if (rng() > 0.99) {
+                                found.type = 4
+                                found.col = [...p.col]
+                                found.reduceTtl(rndInt(60, 120))
+                            }
+                        }
                     }
                 }
             }
