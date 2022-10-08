@@ -48,7 +48,8 @@ const cols = [
     [0xff, 0x05, 0x03],  // fire
     [0x85, 0x5E, 0x42],  // wood
     [0x00, 0xff, 0xa0],  // acid
-    [0xff, 0xff, 0xff]   // salt
+    [0xff, 0xff, 0xff],   // salt
+    [0xff, 0xc0, 0xcb]   // gas
 ]
 
 {
@@ -80,11 +81,11 @@ class Particle {
     constructor(type, x, y, dx, dy, ttl = -1) {
         Object.assign(this, { type, x, y, dx, dy, ttl })
         this.col = [...cols[this.type]]
-        this.col[0] = clamp(this.col[0]+rndInt(-20,20),0,255)
-        this.col[1] = clamp(this.col[1]+rndInt(-20,20),0,255)
-        this.col[2] = clamp(this.col[2]+rndInt(-20,20),0,255)
+        this.col[0] = clamp(this.col[0] + rndInt(-20, 20), 0, 255)
+        this.col[1] = clamp(this.col[1] + rndInt(-20, 20), 0, 255)
+        this.col[2] = clamp(this.col[2] + rndInt(-20, 20), 0, 255)
     }
-    getColor(){
+    getColor() {
         return this.col
     }
     moveTo(x, y) {
@@ -114,6 +115,18 @@ class Particle {
         } else {
             this.ttl = Math.min(this.ttl, min)
         }
+    }
+    swapWith(other) {
+        const ox = other.x
+        const oy = other.y
+        other.x = this.x
+        other.y = this.y
+        this.x = ox
+        this.y = oy
+        fieldSet(this.x, this.y, this)
+        fieldSet(other.x, other.y, other)
+        putPixel(this.x, this.y, ...this.getColor(), 255)
+        putPixel(other.x, other.y, ...other.getColor(), 255)
     }
 }
 
@@ -166,6 +179,7 @@ rafLoop((delta, time) => {
                 [p.x - 1, p.y + 1],
                 [p.x + 1, p.y + 1]
             ]
+            let updated = false
             for (let s = 0; s < succ.length; s++) {
                 const [x, y] = succ[s]
                 if (inBounds(x, y)) {
@@ -175,6 +189,17 @@ rafLoop((delta, time) => {
                     }
                 }
             }
+            if (!updated) {
+                if (inBounds(p.x, p.y + 1)) {
+                    const found = fieldGet(p.x, p.y + 1)
+                    if (found && found.type === 2) {
+                        if (Math.random() > 0.8)
+                            p.swapWith(found)
+                    }
+                }
+            }
+
+
         } else if (p.type === 2) {
             const succ = [
                 [p.x, p.y + 1],
@@ -186,7 +211,8 @@ rafLoop((delta, time) => {
             for (let s = 0; s < succ.length; s++) {
                 const [x, y] = succ[s]
                 if (inBounds(x, y)) {
-                    if (fieldGet(x, y) === undefined) {
+                    const found = fieldGet(x, y)
+                    if (found === undefined) {
                         p.moveTo(x, y)
                         break;
                     }
@@ -198,12 +224,14 @@ rafLoop((delta, time) => {
                 [p.x - 1, p.y - 1],
                 [p.x + 1, p.y - 1]
             ]
-            for (let s = 0; s < succ.length; s++) {
-                const [x, y] = succ[s]
-                if (inBounds(x, y)) {
-                    if (fieldGet(x, y) === undefined) {
-                        p.moveTo(x, y)
-                        break;
+            if (rng() > 0.5) {
+                for (let s = 0; s < succ.length; s++) {
+                    const [x, y] = succ[s]
+                    if (inBounds(x, y)) {
+                        if (fieldGet(x, y) === undefined) {
+                            p.moveTo(x, y)
+                            break;
+                        }
                     }
                 }
             }
@@ -243,11 +271,19 @@ rafLoop((delta, time) => {
             }
         } else if (p.type === 6) {
             {
-                if (inBounds(p.x, p.y + 1)) {
-                    const under = fieldGet(p.x, p.y + 1)
-                    if (under && under.type !== 6) {
-                        under.reduceTtl(rndInt(10, 30))
-                        p.reduceTtl(rndInt(20, 50))
+                const neigs = [
+                    [p.x, p.y + 1],
+                    [p.x, p.y - 1],
+                ]
+                for (let n = 0; n < neigs.length; n++) {
+                    const [x, y] = neigs[n]
+                    if (inBounds(x, y)) {
+                        const nei = fieldGet(x, y)
+                        if (nei && nei.type !== 6) {
+                            nei.reduceTtl(rndInt(10, 30))
+                            p.reduceTtl(rndInt(20, 50))
+                            break;
+                        }
                     }
                 }
             }
@@ -288,13 +324,24 @@ rafLoop((delta, time) => {
                 }
             }
 
+        } else if (p.type === 8) {
+            const x = p.x + ((rng() > 0.5) ? 1 : -1)
+            const y = p.y + ((rng() > 0.5) ? 1 : -1)
+            if (inBounds(x, y)) {
+                if (fieldGet(x, y) === undefined) {
+                    p.moveTo(x, y)
+                }
+            }
         }
+
         if (p.ttl === 0) {
             const currentLast = particles[particles.length - 1]
             particles[i] = currentLast
             particles.length--
             i--
         }
+
+
     }
 
     document.getElementById('particle-count').setCount(particles.length)
