@@ -49,7 +49,8 @@ const cols = [
     [0x85, 0x5E, 0x42],  // wood
     [0x00, 0xff, 0xa0],  // acid
     [0xff, 0xff, 0xff],   // salt
-    [0xff, 0xc0, 0xcb]   // gas
+    [0xff, 0xc0, 0xcb],   // gas
+    [0x0f, 0xf0, 0xff]   // speed
 ]
 
 {
@@ -152,13 +153,15 @@ rafLoop((delta, time) => {
             const r = rng() * 5
             const x = Math.floor(pointer.x + r * Math.cos(a))
             const y = Math.floor(pointer.y + r * Math.sin(a))
+            const dx = (pointer.type === 9) ? (-1 + rng() * 3) : 0
+            const dy = (pointer.type === 9) ? (-1 + rng() * 3) : 0
             if (inBounds(x, y)) {
                 const p = new Particle(
                     pointer.type,
                     Math.floor(x),
                     Math.floor(y),
-                    0,
-                    0,
+                    dx,
+                    dy,
                     ttl
                 )
                 if (fieldGet(p.x, p.y) === undefined) {
@@ -331,7 +334,20 @@ rafLoop((delta, time) => {
                     p.moveTo(x, y)
                 }
             }
+        } else if (p.type === 9) {
+            p.dy += 0.1
+            const x = Math.floor(p.x + p.dx)
+            const y = Math.floor(p.y + p.dy)
+            if (inBounds(x, y)) {
+                const found = fieldGet(x, y)
+                if (found === undefined) {
+                    p.moveTo(x, y)
+                } else if (found.type === 2) {
+                    p.type = 2
+                }
+            }
         }
+
 
         if (p.ttl === 0) {
             const currentLast = particles[particles.length - 1]
