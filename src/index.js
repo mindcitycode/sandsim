@@ -87,7 +87,12 @@ const pointerShapes = [
         }
     }
 ]
-
+import { FrameTimer } from './lib/fps.js'
+const frameTimer = FrameTimer()
+{
+    document.body.append(frameTimer.canvas)
+    frameTimer.update()
+}
 {
 
     pointerShapes.forEach((k, i) => {
@@ -121,6 +126,7 @@ const pointerShapes = [
         info.style.color = 'white'
         document.body.append(info)
     }
+
 }
 
 
@@ -192,6 +198,7 @@ for (let i = 0; i < 0; i++) {
 }
 rafLoop((delta, time) => {
 
+    const frameStartTime = performance.now()
     if (pointer.clicked) {
 
         const points = pointerShapes[pointer.shape].getPoints(pointer.x, pointer.y)
@@ -421,5 +428,7 @@ rafLoop((delta, time) => {
 
     document.getElementById('particle-count').setCount(particles.length)
     ctx.putImageData(imageData, 0, 0)
+    const frameEndTime = performance.now()
+    frameTimer.update(frameEndTime - frameStartTime)
 
 })
