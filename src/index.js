@@ -3,7 +3,7 @@ import { registerKeyboard } from './lib/keyboard.js'
 import { rafLoop } from './lib/loop.js'
 import { canvasMousePosition } from './lib/mouse.js'
 import seedrandom from 'seedrandom'
-
+import { clamp } from './lib/clamp.js'
 const rng = seedrandom('hello.');
 const rndInt = (min, max) => min + Math.floor((max - min) * rng())
 
@@ -79,13 +79,20 @@ const cols = [
 class Particle {
     constructor(type, x, y, dx, dy, ttl = -1) {
         Object.assign(this, { type, x, y, dx, dy, ttl })
+        this.col = [...cols[this.type]]
+        this.col[0] = clamp(this.col[0]+rndInt(-20,20),0,255)
+        this.col[1] = clamp(this.col[1]+rndInt(-20,20),0,255)
+        this.col[2] = clamp(this.col[2]+rndInt(-20,20),0,255)
+    }
+    getColor(){
+        return this.col
     }
     moveTo(x, y) {
         putPixel(this.x, this.y, 0, 0, 0, 255)
         fieldMoveTo(x, y, this)
         this.x = x
         this.y = y
-        putPixel(this.x, this.y, ...cols[this.type], 255)
+        putPixel(this.x, this.y, ...this.getColor(), 255)
     }
     kill() {
         putPixel(this.x, this.y, 0, 0, 0, 255)
@@ -149,6 +156,7 @@ rafLoop((delta, time) => {
             }
         }
     }
+
     for (let i = 0; i < particles.length; i++) {
         const p = particles[i]
         p.age()
@@ -158,8 +166,7 @@ rafLoop((delta, time) => {
                 [p.x - 1, p.y + 1],
                 [p.x + 1, p.y + 1]
             ]
-            let s = 0
-            for (; s < succ.length; s++) {
+            for (let s = 0; s < succ.length; s++) {
                 const [x, y] = succ[s]
                 if (inBounds(x, y)) {
                     if (fieldGet(x, y) === undefined) {
@@ -167,9 +174,6 @@ rafLoop((delta, time) => {
                         break;
                     }
                 }
-            }
-            if (s === succ.length) {
-                p.kill()
             }
         } else if (p.type === 2) {
             const succ = [
@@ -219,9 +223,10 @@ rafLoop((delta, time) => {
                 }
             }
             {
+                // push smoke
                 const x = p.x
                 const y = p.y - 1
-                if (Math.random() > 0.9)
+                if (Math.random() > 0.95)
                     if (inBounds(x, y)) {
                         if (fieldGet(x, y) === undefined) {
                             const p_smoke = new Particle(
@@ -233,7 +238,6 @@ rafLoop((delta, time) => {
                             )
                             fieldSet(p_smoke.x, p_smoke.y, p_smoke)
                             particles.push(p_smoke)
-
                         }
                     }
             }
