@@ -90,45 +90,52 @@ const pointerShapes = [
 import { FrameTimer } from './lib/fps.js'
 const frameTimer = FrameTimer()
 {
-    document.body.append(frameTimer.canvas)
-    frameTimer.update()
-}
-{
+    const toolbar = document.createElement('div')
+    toolbar.classList.add('toolbar')
+    toolbar.style.position = 'fixed'
+    toolbar.style.width = '100%'
+    document.body.append(toolbar)
+    {
+        toolbar.append(frameTimer.canvas)
+        frameTimer.update()
+    }
+    {
 
-    pointerShapes.forEach((k, i) => {
-        const button = document.createElement('button')
-        button.textContent = k.symbol
-        button.style['background-color'] = 'white'
-        button.style.width = '30px'
-        button.style.height = '30px'
-        button.onclick = () => pointer.shape = i
-        document.body.append(button)
-    })
-
-    cols.forEach((col, i) => {
-        if (col) {
+        pointerShapes.forEach((k, i) => {
             const button = document.createElement('button')
-            const [r, g, b] = col
-            button.style['background-color'] = `rgb(${r},${g},${b})`
+            button.textContent = k.symbol
+            button.style['background-color'] = 'white'
             button.style.width = '30px'
             button.style.height = '30px'
-            button.onclick = () => pointer.type = i
-            document.body.append(button)
+            button.onclick = () => pointer.shape = i
+            toolbar.append(button)
+        })
+
+        cols.forEach((col, i) => {
+            if (col) {
+                const button = document.createElement('button')
+                const [r, g, b] = col
+                button.textContent = "."
+                button.style['background-color'] = `rgb(${r},${g},${b})`
+                button.style.width = '30px'
+                button.style.height = '30px'
+                button.onclick = () => pointer.type = i
+                toolbar.append(button)
+            }
+        })
+        {
+            const info = document.createElement('span')
+            info.id = 'particle-count'
+            info.setCount = count => info.textContent = `${count} particles`
+            info.setCount(0)
+            info.style.height = '30px'
+            info.style['font-family'] = 'monospace'
+            info.style.color = 'white'
+            toolbar.append(info)
         }
-    })
-    {
-        const info = document.createElement('span')
-        info.id = 'particle-count'
-        info.setCount = count => info.textContent = `${count} particles`
-        info.setCount(0)
-        info.style.height = '30px'
-        info.style['font-family'] = 'monospace'
-        info.style.color = 'white'
-        document.body.append(info)
+
     }
-
 }
-
 
 class Particle {
     constructor(type, x, y, dx, dy, ttl = -1) {
