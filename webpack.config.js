@@ -13,7 +13,7 @@ const config = {
         new CopyPlugin({
             patterns: [
                 { from: "assets", to: "assets" },
-    //            { from: "favicon.ico", to: "favicon.ico" },
+                //            { from: "favicon.ico", to: "favicon.ico" },
             ],
         }),
         new HtmlWebpackPlugin({
@@ -32,7 +32,14 @@ const config = {
 
     watchOptions: {
         ignored: /\.#|node_modules|~$/,
-    }
+    }, module: {
+        rules: [
+            {
+                test: /\.css$/i,
+                use: ["style-loader", "css-loader"],
+            },
+        ],
+    },
 }
 
 module.exports = (env, args) => {

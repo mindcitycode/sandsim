@@ -34,7 +34,7 @@ export const pointerShapes = [
         }
     }
 ]
-
+import './ui.css'
 export const createUi = (cols, canvas) => {
 
     // pointer
@@ -43,60 +43,54 @@ export const createUi = (cols, canvas) => {
     document.body.addEventListener('mousedown', e => pointer.clicked = true)
     document.body.addEventListener('mouseup', e => pointer.clicked = false)
 
+    const Separator = () => {
+        const e = document.createElement('div')
+        e.classList.add('separator')
+        return e
+    }
 
+    const toolbar = document.createElement('div')
+    toolbar.classList.add('toolbar')
+    document.body.append(toolbar)
+ 
+ 
     const frameTimer = FrameTimer()
     {
-        const toolbar = document.createElement('div')
-        toolbar.classList.add('toolbar')
-        toolbar.style.display = 'flex'
-        toolbar.style.position = 'fixed'
-        toolbar.style.width = '100%'
-        document.body.append(toolbar)
-        {
-            const style = document.createElement('style')
-            style.textContent = 'div.toolbar button { border : 0px; border-radius : 4px; }'
-            toolbar.append(style)
-        }
-        {
-            toolbar.append(frameTimer.canvas)
-            frameTimer.update()
-        }
-        {
+        toolbar.append(frameTimer.canvas)
+        frameTimer.update()
+    }
+    toolbar.append(Separator())
+    {
 
-            pointerShapes.forEach((k, i) => {
+        pointerShapes.forEach((k, i) => {
+            const button = document.createElement('button')
+            button.classList.add('shape')
+            button.textContent = k.symbol
+            button.onclick = () => pointer.shape = i
+            toolbar.append(button)
+        })
+    }
+    toolbar.append(Separator())
+    {
+        cols.forEach((col, i) => {
+            if (col) {
                 const button = document.createElement('button')
-                button.textContent = k.symbol
-                button.style['background-color'] = 'white'
-                button.style.width = '30px'
-                button.style.height = '30px'
-                button.onclick = () => pointer.shape = i
+                const [r, g, b] = col
+                button.textContent = "."
+                button.style['background-color'] = `rgb(${r},${g},${b})`
+                button.onclick = () => pointer.type = i
                 toolbar.append(button)
-            })
-
-            cols.forEach((col, i) => {
-                if (col) {
-                    const button = document.createElement('button')
-                    const [r, g, b] = col
-                    button.textContent = "."
-                    button.style['background-color'] = `rgb(${r},${g},${b})`
-                    button.style.width = '30px'
-                    button.style.height = '30px'
-                    button.onclick = () => pointer.type = i
-                    toolbar.append(button)
-                }
-            })
-            {
-                const info = document.createElement('span')
-                info.id = 'particle-count'
-                info.setCount = count => info.textContent = `${count} particles`
-                info.setCount(0)
-                info.style.height = '30px'
-                info.style['font-family'] = 'monospace'
-                info.style.color = 'white'
-                toolbar.append(info)
             }
-
+        })
+        toolbar.append(Separator())
+        {
+            const info = document.createElement('span')
+            info.id = 'particle-count'
+            info.setCount = count => info.textContent = `${count} particles`
+            info.setCount(0)
+            toolbar.append(info)
         }
+
     }
     return {
         frameTimer,

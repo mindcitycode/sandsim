@@ -1,0 +1,32 @@
+div.toolbar {
+    position: fixed;
+    display: flex;
+    padding: 2px;
+    border: 5px solid grey;
+    border-radius: 0 0px 5px 5px;
+    background-color: grey;
+    left: 50%;
+    transform: translate(-50%);
+}
+
+div.toolbar button {
+    border: 0px;
+    border-radius: 4px;
+    width: 30px;
+    height: 30px;
+}
+
+div.toolbar button.shape {
+    background-color: white;
+}
+
+div.toolbar #particle-count {
+    font-family: monospace;
+    height: 30px;
+    width: 10em;
+    color: white;
+}
+
+div.toolbar div.separator {
+    width: 20px;
+}
