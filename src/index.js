@@ -92,9 +92,15 @@ const frameTimer = FrameTimer()
 {
     const toolbar = document.createElement('div')
     toolbar.classList.add('toolbar')
+    toolbar.style.display = 'flex'
     toolbar.style.position = 'fixed'
     toolbar.style.width = '100%'
     document.body.append(toolbar)
+    {
+        const style = document.createElement('style')
+        style.textContent = 'div.toolbar button { border : 0px; border-radius : 4px; }'
+        toolbar.append(style)
+    }
     {
         toolbar.append(frameTimer.canvas)
         frameTimer.update()
