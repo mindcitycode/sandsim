@@ -4,8 +4,6 @@ import { canvasMousePosition } from './lib/mouse.js'
 
 const rng = seedrandom('hello.');
 
-
-
 export const pointerShapes = [
     {
         symbol: '⬤',
@@ -100,5 +98,9 @@ export const createUi = (cols, canvas) => {
 
         }
     }
-    return { frameTimer, pointer }
+    return {
+        frameTimer,
+        pointer,
+        setParticleCount: count => document.getElementById('particle-count').setCount(count)
+    }
 }

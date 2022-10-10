@@ -1,8 +1,20 @@
 import { fsCanvas } from './lib/fscanvas.js'
-import { registerKeyboard } from './lib/keyboard.js'
 import { rafLoop } from './lib/loop.js'
 import seedrandom from 'seedrandom'
 import { clamp } from './lib/clamp.js'
+
+const cols = [
+    undefined,
+    [0xe3, 0xdb, 0x65],  // sand
+    [0x00, 0x00, 0xee],  // water
+    [0xaa, 0xaa, 0xaa],  // smoke
+    [0xff, 0x05, 0x03],  // fire
+    [0x85, 0x5E, 0x42],  // wood
+    [0x00, 0xff, 0xa0],  // acid
+    [0xff, 0xff, 0xff],   // salt
+    [0xff, 0xc0, 0xcb],   // gas
+    [0x0f, 0xf0, 0xff]   // speed
+]
 
 // rng
 const rng = seedrandom('hello.');
@@ -19,13 +31,10 @@ const putPixel = (x, y, r, g, b, a) => {
     imageData.data[offset + 2] = b
     imageData.data[offset + 3] = a
 }
-const clear = () => {
-    ctx.fillStyle = 'white'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-}
-const inBounds = (x, y) => (x > 0) && (x < canvas.width) && (y > 0) && (y < canvas.height)
-clear()
+const blit = () => ctx.putImageData(imageData, 0, 0)
 
+// bounds
+const inBounds = (x, y) => (x > 0) && (x < canvas.width) && (y > 0) && (y < canvas.height)
 
 // bitmap acceleration structure
 const field = new Array(canvas.width * canvas.height)
@@ -36,13 +45,6 @@ export const fieldMoveTo = (x, y, p) => {
     fieldSet(x, y, p)
 }
 
-import { cols } from './sand.js'
-
-const particles = []
-
-// ui
-import { createUi, pointerShapes } from './ui.js'
-const ui = createUi(cols, canvas)
 class Particle {
     constructor(type, x, y, dx, dy, ttl = -1) {
         Object.assign(this, { type, x, y, dx, dy, ttl })
@@ -96,6 +98,7 @@ class Particle {
     }
 }
 
+const particles = []
 
 for (let i = 0; i < 0; i++) {
     const p = new Particle(
@@ -109,6 +112,11 @@ for (let i = 0; i < 0; i++) {
         p.moveTo(p.x, p.y)
     }
 }
+
+// ui
+import { createUi, pointerShapes } from './ui.js'
+const ui = createUi(cols, canvas)
+
 rafLoop((delta, time) => {
 
     const frameStartTime = performance.now()
@@ -338,10 +346,9 @@ rafLoop((delta, time) => {
 
 
     }
-
-    document.getElementById('particle-count').setCount(particles.length)
-    ctx.putImageData(imageData, 0, 0)
+    blit()
     const frameEndTime = performance.now()
     ui.frameTimer.update(frameEndTime - frameStartTime)
+    ui.setParticleCount(particles.length)
 
 })
