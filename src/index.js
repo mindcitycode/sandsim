@@ -1,7 +1,6 @@
 import { fsCanvas } from './lib/fscanvas.js'
 import { registerKeyboard } from './lib/keyboard.js'
 import { rafLoop } from './lib/loop.js'
-import { canvasMousePosition } from './lib/mouse.js'
 import seedrandom from 'seedrandom'
 import { clamp } from './lib/clamp.js'
 
@@ -27,122 +26,23 @@ const clear = () => {
 const inBounds = (x, y) => (x > 0) && (x < canvas.width) && (y > 0) && (y < canvas.height)
 clear()
 
-// pointer
-const pointer = { x: 0, y: 0, clicked: false, type: 1, shape: 0 }
-document.body.addEventListener('mousemove', e => canvasMousePosition(canvas, e, pointer))
-document.body.addEventListener('mousedown', e => pointer.clicked = true)
-document.body.addEventListener('mouseup', e => pointer.clicked = false)
 
 // bitmap acceleration structure
 const field = new Array(canvas.width * canvas.height)
-const fieldGet = (x, y) => field[x + canvas.width * y]
-const fieldSet = (x, y, v) => field[x + canvas.width * y] = v
-const fieldMoveTo = (x, y, p) => {
+export const fieldGet = (x, y) => field[x + canvas.width * y]
+export const fieldSet = (x, y, v) => field[x + canvas.width * y] = v
+export const fieldMoveTo = (x, y, p) => {
     fieldSet(p.x, p.y, undefined)
     fieldSet(x, y, p)
 }
 
+import { cols } from './sand.js'
+
 const particles = []
-const cols = [
-    undefined,
-    [0xe3, 0xdb, 0x65],  // sand
-    [0x00, 0x00, 0xee],  // water
-    [0xaa, 0xaa, 0xaa],  // smoke
-    [0xff, 0x05, 0x03],  // fire
-    [0x85, 0x5E, 0x42],  // wood
-    [0x00, 0xff, 0xa0],  // acid
-    [0xff, 0xff, 0xff],   // salt
-    [0xff, 0xc0, 0xcb],   // gas
-    [0x0f, 0xf0, 0xff]   // speed
-]
 
 // ui
-const pointerShapes = [
-    {
-        symbol: '⬤',
-        getPoints: (px, py) => {
-            const points = []
-            for (let count = 0; count < 10; count++) {
-                const a = rng() * Math.PI * 2
-                const r = rng() * 5
-                const x = Math.floor(px + r * Math.cos(a))
-                const y = Math.floor(py + r * Math.sin(a))
-                points.push({ x, y })
-            }
-            return points
-        },
-    },
-    {
-        symbol: '⏹',
-        getPoints: (px, py) => {
-            const points = []
-            for (let i = 0; i < 10; i++) {
-                for (let j = 0; j < 10; j++) {
-                    const x = px + i - 5
-                    const y = py + j - 5
-                    points.push({ x, y })
-                }
-            }
-            return points
-        }
-    }
-]
-import { FrameTimer } from './lib/fps.js'
-const frameTimer = FrameTimer()
-{
-    const toolbar = document.createElement('div')
-    toolbar.classList.add('toolbar')
-    toolbar.style.display = 'flex'
-    toolbar.style.position = 'fixed'
-    toolbar.style.width = '100%'
-    document.body.append(toolbar)
-    {
-        const style = document.createElement('style')
-        style.textContent = 'div.toolbar button { border : 0px; border-radius : 4px; }'
-        toolbar.append(style)
-    }
-    {
-        toolbar.append(frameTimer.canvas)
-        frameTimer.update()
-    }
-    {
-
-        pointerShapes.forEach((k, i) => {
-            const button = document.createElement('button')
-            button.textContent = k.symbol
-            button.style['background-color'] = 'white'
-            button.style.width = '30px'
-            button.style.height = '30px'
-            button.onclick = () => pointer.shape = i
-            toolbar.append(button)
-        })
-
-        cols.forEach((col, i) => {
-            if (col) {
-                const button = document.createElement('button')
-                const [r, g, b] = col
-                button.textContent = "."
-                button.style['background-color'] = `rgb(${r},${g},${b})`
-                button.style.width = '30px'
-                button.style.height = '30px'
-                button.onclick = () => pointer.type = i
-                toolbar.append(button)
-            }
-        })
-        {
-            const info = document.createElement('span')
-            info.id = 'particle-count'
-            info.setCount = count => info.textContent = `${count} particles`
-            info.setCount(0)
-            info.style.height = '30px'
-            info.style['font-family'] = 'monospace'
-            info.style.color = 'white'
-            toolbar.append(info)
-        }
-
-    }
-}
-
+import { createUi, pointerShapes } from './ui.js'
+const ui = createUi(cols, canvas)
 class Particle {
     constructor(type, x, y, dx, dy, ttl = -1) {
         Object.assign(this, { type, x, y, dx, dy, ttl })
@@ -212,8 +112,8 @@ for (let i = 0; i < 0; i++) {
 rafLoop((delta, time) => {
 
     const frameStartTime = performance.now()
-    if (pointer.clicked) {
-
+    if (ui.pointer.clicked) {
+        const pointer = ui.pointer
         const points = pointerShapes[pointer.shape].getPoints(pointer.x, pointer.y)
         for (let count = 0; count < points.length; count++) {
             const ttl = (pointer.type === 3) ? rndInt(30, 90) : (pointer.type === 4) ? rndInt(100, 260) : undefined
@@ -442,6 +342,6 @@ rafLoop((delta, time) => {
     document.getElementById('particle-count').setCount(particles.length)
     ctx.putImageData(imageData, 0, 0)
     const frameEndTime = performance.now()
-    frameTimer.update(frameEndTime - frameStartTime)
+    ui.frameTimer.update(frameEndTime - frameStartTime)
 
 })
