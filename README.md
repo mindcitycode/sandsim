@@ -22,4 +22,4 @@ build
 
 ## license
 
-sandsim is licensed under the agpl-3.0 license
+sandsim is licensed under the AGPL-3.0-only license
